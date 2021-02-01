@@ -6,6 +6,10 @@ from parse import parse
 from time import sleep
 import time
 import json
+import pyrebase
+import firebase_admin
+from firebase_admin import credentials, db
+
 
 driver = webdriver.Chrome()
 driver.get(
@@ -14,7 +18,18 @@ driver.get(
 
 my_arr = []
 complete_dict = {}
-_id = 1
+
+
+# Firebase DB connection
+
+
+cred = credentials.Certificate(
+    "./auth_key/realtime-route-info-firebase-adminsdk-7i9h5-1385f612ff.json")
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://realtime-route-info-default-rtdb.firebaseio.com/'
+})
+
+ref = db.reference('routeinfo')
 
 while True:
 
@@ -32,14 +47,15 @@ while True:
             # my_dict.append(info)
             my_dict[new_info[0]] = new_info[1]
 
-        _id += 1
         # my_dict[my_dict.get('current_route')] = my_dict.pop(1)
 
         complete_dict[my_dict.get('current_route')] = my_dict
         # my_arr.append({my_dict.get('current_route'): my_dict})
 
-    with open('route.json', 'w') as json_file:
-        json.dump(complete_dict, json_file)
+    ref.update(complete_dict)
+
+    # with open('route.json', 'w') as json_file:
+    #     json.dump(complete_dict, json_file)
 
     driver.execute_script("RefreshTimeTrack()")
 
